@@ -1,0 +1,7 @@
+{
+  "build_from":
+    {
+      "amd64": "itzg/minecraft-server:java25",
+      "aarch64": "itzg/minecraft-server:java25",
+    },
+}
