@@ -1,15 +1,20 @@
-# Home assistant add-ons
+# HAMC Server (Bedrock)
 
-My custom Home Assistant add-ons. Templates thanks to [alexbelgium](https://github.com/alexbelgium/hassio-addons)!
+This add-on allows for hosting a Minecraft Bedrock server using Home Assistant. Based on the Minecraft server docker by [itzg](https://github.com/itzg/docker-minecraft-bedrock-server).
 
-## Installation
+## Configuration
 
+All configuration is done using the add-on options. It allows for setting the environment variables found [here](https://github.com/itzg/docker-minecraft-bedrock-server#environment-variables). For more info about these values, also check [here](https://minecraft.fandom.com/wiki/Server.properties#Bedrock_Edition_3).
 
+To access the Minecraft server from outside your network, forward port 19132 (UDP) on your router. Then connect using:
 
-## Add-ons
+```
+<your_ip>:19132
+```
 
-- [HAMC-server-bedrock](hamc-server-bedrock/): Minecraft (bedrock) server.
+Server data is stored in the `/addon_configs/<slug>_hamc-bedrock` folder for easy backups & adjustments.
 
-- [HAMC-server-java](hamc-server-java/): Minecraft (java) server.
+## References
 
-- [MS-rewards](msrewards/): Automated Microsoft Rewards point collection.
+- Thanks to [alexbelgium](https://github.com/alexbelgium/hassio-addons) for the add-on template.
+- Thanks to [itzg](https://github.com/itzg/docker-minecraft-bedrock-server) for the docker image.
