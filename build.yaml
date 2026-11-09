@@ -1,6 +1,0 @@
-{
-  "build_from": {
-    "amd64": "itzg/minecraft-bedrock-server:latest",
-    "aarch64": "itzg/minecraft-bedrock-server:latest"
-  },
-}
