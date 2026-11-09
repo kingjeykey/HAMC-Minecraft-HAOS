@@ -135,12 +135,11 @@ func (r *RCON) execLocked(cmd string) (out string, gotReply bool, err error) {
 		r.close()
 		return "", false, err
 	}
-	// Zweites, leeres Paket als Endemarke: der Server beantwortet es nach der Befehlsantwort.
-	if err = writeRconPacket(c, idB, 0, ""); err != nil {
-		r.close()
-		return "", false, err
-	}
+	// Wichtig: Die Endemarke wird erst gesendet, NACHDEM die erste Antwort da ist.
+	// Der Minecraft-Server liest pro read()-Aufruf genau ein Paket und trennt die
+	// Verbindung, wenn zwei Pakete zusammen ankommen (Ursache für sporadisches EOF).
 	var sb strings.Builder
+	sentinel := false
 	for {
 		id, _, body, e := readRconPacket(c)
 		if e != nil {
@@ -153,6 +152,14 @@ func (r *RCON) execLocked(cmd string) (out string, gotReply bool, err error) {
 		}
 		if id == idA {
 			sb.WriteString(body)
+			if !sentinel {
+				sentinel = true
+				// Zweites, leeres Paket als Endemarke: der Server beantwortet es nach der Befehlsantwort.
+				if err = writeRconPacket(c, idB, 0, ""); err != nil {
+					r.close()
+					return sb.String(), true, err
+				}
+			}
 		}
 	}
 	return sb.String(), true, nil

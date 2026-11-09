@@ -1,5 +1,9 @@
 ## next
 
+## 1.5.1
+
+- Fix: RCON connections were closed by the server at random ("RCON nicht erreichbar: EOF"), so TPS/MSPT, console input and whitelist changes did not work. The RCON client now sends its packets one at a time, as the Minecraft server expects. TPS detection is also retried sooner after a connection error.
+
 ## 1.5.0
 
 - New: web UI in the Home Assistant sidebar ("Minecraft"), independent of the server type (Vanilla, Paper, Forge, Fabric, ...):

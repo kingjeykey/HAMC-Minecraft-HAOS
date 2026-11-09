@@ -72,6 +72,7 @@ type Collector struct {
 	hasMSPT    bool
 	tickFails  int
 	lastDetect time.Time
+	detectErr  bool
 	supErr     string
 	lastPing   string
 }
@@ -259,6 +260,10 @@ func (c *Collector) pollRcon() {
 func (c *Collector) runTick(method string) (*TickInfo, bool) {
 	out, err := c.app.rcon.Exec(method)
 	if err != nil {
+		// Verbindungsfehler: Erkennung bald wiederholen statt 5 Minuten zu warten.
+		c.mu.Lock()
+		c.detectErr = true
+		c.mu.Unlock()
 		return nil, false
 	}
 	c.setDiag(method, out)
@@ -306,7 +311,15 @@ func (c *Collector) pollTick() {
 		}
 		c.mu.Lock()
 		c.lastDetect = time.Now()
+		c.detectErr = false
 		c.mu.Unlock()
+		defer func() {
+			c.mu.Lock()
+			if c.detectErr {
+				c.lastDetect = time.Time{}
+			}
+			c.mu.Unlock()
+		}()
 		for _, cand := range tickCandidates {
 			if t, ok := c.runTick(cand); ok {
 				if cand == "tps" {
