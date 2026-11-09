@@ -4,6 +4,13 @@
 
 ARG BUILD_FROM
 ARG BUILD_VERSION
+
+# Web UI (file manager, console, whitelist, stats, MQTT): small static Go binary
+FROM golang:1.23-alpine AS ui-build
+WORKDIR /src
+COPY ui/ ./
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /hamc-ui .
+
 FROM ${BUILD_FROM}
 
 ##################
@@ -48,6 +55,9 @@ ARG BUILD_ARCH=amd64
 ARG PLAYIT_VERSION=v1.2.0
 ADD "https://github.com/playit-cloud/playit-agent/releases/download/${PLAYIT_VERSION}/playit-linux-${BUILD_ARCH}" "/usr/local/bin/playit"
 RUN chmod 755 /usr/local/bin/playit
+
+# Web UI (ingress panel)
+COPY --from=ui-build /hamc-ui /usr/local/bin/hamc-ui
 
 ################
 # 4 Entrypoint #

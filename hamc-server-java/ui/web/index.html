@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HAMC Minecraft-Server</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="title">
+    <h1>Minecraft-Server</h1>
+    <span id="state" class="state" data-s="wait">Verbinde</span>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Bereiche">
+    <button role="tab" data-tab="overview" aria-selected="true">Übersicht</button>
+    <button role="tab" data-tab="console" aria-selected="false">Konsole</button>
+    <button role="tab" data-tab="whitelist" aria-selected="false">Whitelist</button>
+    <button role="tab" data-tab="files" aria-selected="false">Dateien</button>
+  </nav>
+</header>
+
+<main>
+  <section id="tab-overview" class="tab" role="tabpanel">
+    <div id="ovNote" class="note" hidden></div>
+    <div class="ov-grid">
+      <div id="budget" class="budget"></div>
+      <div id="players" class="players"></div>
+    </div>
+    <h2>Details</h2>
+    <dl id="facts" class="facts"></dl>
+    <h2>Verlauf der letzten Stunde</h2>
+    <div id="sparks" class="sparks"></div>
+    <h2>Home Assistant</h2>
+    <p id="haInfo" class="muted"></p>
+    <details class="tech"><summary>Technische Details</summary><pre id="diag"></pre></details>
+  </section>
+
+  <section id="tab-console" class="tab" role="tabpanel" hidden>
+    <div id="conNote" class="note" hidden></div>
+    <div class="con-tools">
+      <span id="conStatus" class="muted">Verbinde</span>
+      <label class="check"><input type="checkbox" id="conAuto" checked> Automatisch mitscrollen</label>
+      <button class="btn small" id="conClear" type="button">Anzeige leeren</button>
+    </div>
+    <div id="conOut" class="console" role="log" aria-live="off" tabindex="0"></div>
+    <form id="conForm" class="con-form" autocomplete="off">
+      <input id="conIn" type="text" placeholder="Befehl eingeben, zum Beispiel list" aria-label="Server-Befehl" spellcheck="false">
+      <button class="btn primary" type="submit">Senden</button>
+    </form>
+    <div class="chips">
+      <button class="chip" type="button" data-cmd="list">Spieler anzeigen</button>
+      <button class="chip" type="button" data-cmd="save-all">Welt speichern</button>
+      <button class="chip" type="button" data-cmd="whitelist list">Whitelist anzeigen</button>
+    </div>
+    <p class="muted small-note">Mit <code>stop</code> wird der Server beendet und damit auch das Add-on.</p>
+  </section>
+
+  <section id="tab-whitelist" class="tab" role="tabpanel" hidden>
+    <div id="wlNote" class="note" hidden></div>
+    <div class="wl-head">
+      <label class="check"><input type="checkbox" id="wlEnabled"> Whitelist ist aktiv</label>
+      <button class="btn small" id="wlReload" type="button">Datei neu einlesen</button>
+    </div>
+    <p class="muted small-note">Ist in der Konfiguration eine WHITELIST eingetragen, schaltet das Add-on die Whitelist beim Start wieder ein.</p>
+    <form id="wlForm" class="wl-form" autocomplete="off">
+      <input id="wlName" type="text" placeholder="Spielername" aria-label="Spielername" maxlength="32" spellcheck="false">
+      <button class="btn primary" type="submit">Hinzufügen</button>
+    </form>
+    <p id="wlMsg" class="msg" role="status" hidden></p>
+    <table class="tbl wl-tbl"><thead><tr><th>Spieler</th><th>UUID</th><th></th></tr></thead><tbody id="wlBody"></tbody></table>
+    <p id="wlEmpty" class="muted" hidden>Die Whitelist ist leer. Füge oben Spieler hinzu.</p>
+    <p id="wlSync" class="muted"></p>
+  </section>
+
+  <section id="tab-files" class="tab" role="tabpanel" hidden>
+    <div id="fShort" class="chips"></div>
+    <nav id="crumbs" class="crumbs" aria-label="Pfad"></nav>
+    <div class="f-tools">
+      <button class="btn primary" id="fUpload" type="button">Hochladen</button>
+      <button class="btn" id="fMkdir" type="button">Neuer Ordner</button>
+      <button class="btn" id="fFetch" type="button">Von Adresse laden</button>
+      <span id="fFree" class="muted"></span>
+      <input type="file" id="fPick" multiple hidden>
+    </div>
+    <div id="upBar" class="upbar" hidden><progress id="upProg" max="100" value="0"></progress><span id="upTxt"></span></div>
+    <div id="jobs" class="jobs"></div>
+    <div id="fDrop" class="drop">
+      <table class="tbl files">
+        <thead><tr><th>Name</th><th class="sz">Größe</th><th class="md">Geändert</th><th></th></tr></thead>
+        <tbody id="fBody"></tbody>
+      </table>
+      <p id="fEmpty" class="muted" hidden>Dieser Ordner ist leer. Ziehe Dateien hierher oder nutze Hochladen.</p>
+    </div>
+    <p class="muted small-note">Ordner kannst du als ZIP laden. Läuft eine Welt, pausiert der Server dafür kurz das Speichern. Große Dateien lädst du am besten über Von Adresse laden.</p>
+  </section>
+</main>
+
+<dialog id="dlg"></dialog>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>

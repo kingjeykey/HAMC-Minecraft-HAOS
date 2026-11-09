@@ -1,5 +1,15 @@
 ## next
 
+## 1.5.0
+
+- New: web UI in the Home Assistant sidebar ("Minecraft"), independent of the server type (Vanilla, Paper, Forge, Fabric, ...):
+  - Overview: online state, players, tick time (MSPT) / TPS, add-on CPU and RAM, free disk space and history graphs.
+  - Console: live server log and command input (via RCON).
+  - Whitelist: add/remove players, switch on/off. Changes are written back into the `WHITELIST` option of the add-on.
+  - Files: browse the server folder, upload and download files, download worlds/folders as ZIP, edit text files, unzip, rename, delete, load files from a URL.
+- New: Home Assistant entities via MQTT discovery (device "HAMC Minecraft Server"): online, players, max players, latency, TPS, MSPT, add-on CPU/RAM, free disk space, whitelist, version, MOTD. New options `MQTT_ENABLED`, `MQTT_HOST`, `MQTT_PORT`, `MQTT_USER`, `MQTT_PASSWORD` (by default the broker is found automatically).
+- If `RCON_PASSWORD` is empty, a random password is now generated and stored, so RCON is never open without a password.
+
 ## 1.4.0
 
 - New: optional playit.gg tunnel. Set `PLAYIT_ENABLED` to true and paste your agent secret into `PLAYIT_SECRET` to make the server reachable without port forwarding (useful behind CGNAT / DS-Lite). The agent is pinned to playit v1.2.0 and disabled by default.
