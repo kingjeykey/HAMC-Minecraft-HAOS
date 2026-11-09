@@ -35,7 +35,7 @@ if bashio::supervisor.ping; then
     bashio::log.blue \
         ' or support in, e.g., GitHub, forums'
     bashio::log.green \
-        ' https://github.com/williamcorsel/hassio-addons'
+        ' https://github.com/kingjeykey/HAMC-Minecraft-HAOS'
     bashio::log.blue \
         '-----------------------------------------------------------'
 fi

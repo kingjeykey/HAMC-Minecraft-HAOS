@@ -1,5 +1,9 @@
 ## next
 
+## 1.4.0
+
+- New: optional playit.gg tunnel. Set `PLAYIT_ENABLED` to true and paste your agent secret into `PLAYIT_SECRET` to make the server reachable without port forwarding (useful behind CGNAT / DS-Lite). The agent is pinned to playit v1.2.0 and disabled by default.
+
 ## 1.3.0
 
 - Fix: the server did not start with recent Minecraft versions (`UnsupportedClassVersionError`, class file version 69). The base image now uses the explicit tag `itzg/minecraft-server:java25` (Java 25, required by Minecraft 26.1 and newer) instead of `latest`. The new tag also forces a fresh pull of the base image instead of reusing an outdated local copy.

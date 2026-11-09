@@ -41,6 +41,14 @@ ENV PACKAGES=""
 ADD "https://raw.githubusercontent.com/alexbelgium/hassio-addons/master/.templates/ha_autoapps.sh" "/ha_autoapps.sh"
 RUN chmod 744 /ha_autoapps.sh && /ha_autoapps.sh "$PACKAGES" && rm /ha_autoapps.sh
 
+# Optional playit.gg tunnel agent (for connections without port forwarding / behind CGNAT)
+# Pinned on purpose: bump PLAYIT_VERSION when playit deprecates the old agent version.
+# The release asset names (playit-linux-amd64 / playit-linux-aarch64) match BUILD_ARCH.
+ARG BUILD_ARCH=amd64
+ARG PLAYIT_VERSION=v1.2.0
+ADD "https://github.com/playit-cloud/playit-agent/releases/download/${PLAYIT_VERSION}/playit-linux-${BUILD_ARCH}" "/usr/local/bin/playit"
+RUN chmod 755 /usr/local/bin/playit
+
 ################
 # 4 Entrypoint #
 ################
@@ -73,13 +81,13 @@ LABEL \
     io.hass.arch="${BUILD_ARCH}" \
     io.hass.type="addon" \
     io.hass.version=${BUILD_VERSION} \
-    maintainer="williamcorsel (https://github.com/williamcorsel)" \
+    maintainer="kingjeykey (https://github.com/kingjeykey)" \
     org.opencontainers.image.title="${BUILD_NAME}" \
     org.opencontainers.image.description="${BUILD_DESCRIPTION}" \
     org.opencontainers.image.vendor="Home Assistant Add-ons" \
-    org.opencontainers.image.authors="wiliamcorsel (https://github.com/williamcorsel)" \
+    org.opencontainers.image.authors="kingjeykey (https://github.com/kingjeykey)" \
     org.opencontainers.image.licenses="MIT" \
-    org.opencontainers.image.url="https://github.com/williamcorsel" \
+    org.opencontainers.image.url="https://github.com/kingjeykey/HAMC-Minecraft-HAOS" \
     org.opencontainers.image.source="https://github.com/${BUILD_REPOSITORY}" \
     org.opencontainers.image.documentation="https://github.com/${BUILD_REPOSITORY}/blob/main/README.md" \
     org.opencontainers.image.created=${BUILD_DATE} \
