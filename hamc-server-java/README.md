@@ -31,10 +31,11 @@ After starting the add-on a **Minecraft** entry appears in the Home Assistant si
 | Overview | Online state, players, tick time (MSPT) or TPS, CPU/RAM of the add-on, free disk space, history graphs |
 | Console | Live server log and command input |
 | Whitelist | Add/remove players and switch the whitelist on/off. Changes are also written into the `WHITELIST` option |
-| Files | Browse the server folder, upload plugins/mods, download files or whole worlds as ZIP, edit text files, unzip, rename, delete, load a file from a URL |
+| Files | Browse the server folder, upload plugins/mods, download files or whole worlds as ZIP, edit text files, unzip, rename, delete, load a file from a URL, install Modrinth modpacks (`.mrpack`) |
 
 Notes:
 
+- Modpacks: upload a `.mrpack` (or load it by URL) and click **Modpack installieren**. The add-on downloads the server mods, verifies checksums, applies the config files and can set `TYPE`/`VERSION`. Restart the add-on afterwards. Existing mods are kept.
 - Console input, TPS values and whitelist changes use RCON. The add-on generates an RCON password automatically if `RCON_PASSWORD` is empty. TPS/MSPT are read with the commands the server offers (`tick query`, `tps`, `mspt`, `forge tps`, ...). If a server type has none of them, the values show as unavailable.
 - Large uploads through the Home Assistant frontend can be slow. For big files use **Von Adresse laden** (the server downloads the file itself) or the Samba/SSH add-on.
 - Changes to `server.properties` are overwritten by the add-on options on every start. Use the options for settings that exist there.

@@ -366,6 +366,7 @@
       var p = join(fpath, e.name), a = '';
       a += '<button class="lnk" data-act="dl" data-p="' + esc(p) + '">' + (e.dir ? 'Als ZIP' : 'Laden') + '</button>';
       if (!e.dir && /\.zip$/i.test(e.name)) a += '<button class="lnk" data-act="unzip" data-p="' + esc(p) + '">Entpacken</button>';
+      if (!e.dir && /\.mrpack$/i.test(e.name)) a += '<button class="lnk" data-act="mrpack" data-p="' + esc(p) + '">Modpack installieren</button>';
       if (!e.dir) a += '<button class="lnk" data-act="edit" data-p="' + esc(p) + '">Bearbeiten</button>';
       a += '<button class="lnk" data-act="ren" data-p="' + esc(p) + '" data-n="' + esc(e.name) + '">Umbenennen</button>';
       a += '<button class="lnk danger" data-act="del" data-p="' + esc(p) + '" data-n="' + esc(e.name) + '">Löschen</button>';
@@ -393,8 +394,32 @@
       });
     } else if (act === 'unzip') {
       api('POST', 'files/unzip', { path: p }).then(function (r) { toast('Entpacken gestartet'); jobsPoll(); }).catch(function (er) { toast(er.message); });
-    } else if (act === 'edit') editFile(p);
+    } else if (act === 'mrpack') installMrpack(p);
+    else if (act === 'edit') editFile(p);
   });
+  function installMrpack(p) {
+    api('POST', 'mrpack/inspect', { path: p }).then(function (m) {
+      var loader = m.type ? m.loader + (m.loader_version ? ' ' + m.loader_version : '') : 'unbekannt';
+      var h = '<h3>' + esc(m.name || 'Modpack') + (m.version ? ' ' + esc(m.version) : '') + '</h3>' +
+        (m.summary ? '<p class="hint">' + esc(m.summary) + '</p>' : '') +
+        '<dl class="facts" style="grid-template-columns:9rem 1fr;margin-bottom:12px">' +
+        '<dt>Minecraft</dt><dd>' + esc(m.minecraft || '–') + '</dd>' +
+        '<dt>Mod-Loader</dt><dd>' + esc(loader) + '</dd>' +
+        '<dt>Dateien</dt><dd>' + m.files + ' (' + fmtSize(m.size) + ')' + (m.skipped_client ? ', übersprungen (nur für Clients): ' + m.skipped_client : '') + '</dd>' +
+        (m.current_type ? '<dt>Jetzt eingestellt</dt><dd>' + esc(m.current_type) + ' ' + esc(m.current_version || '') + '</dd>' : '') + '</dl>';
+      if (m.can_apply) h += '<label class="check"><input type="checkbox" name="apply" checked> Servertyp ' + esc(m.type) + ' und Version ' + esc(m.minecraft) + ' in der Konfiguration eintragen</label>';
+      else h += '<p class="hint">Servertyp und Version musst du selbst in der Konfiguration einstellen.</p>';
+      h += '<p class="hint" style="margin-top:10px">Vorhandene Mods werden nicht gelöscht. Nach der Installation das Add-on neu starten. Das Add-on wählt die Loader-Version selbst, meist die neueste.</p>' + btns('Installieren');
+      return dialog(h).then(function (f) {
+        if (!f) return;
+        var apply = !!(f.apply && f.apply.checked);
+        return api('POST', 'mrpack/install', { path: p, apply: apply }).then(function (r) {
+          toast(r.apply_error ? 'Installation gestartet. Konfiguration nicht geändert: ' + r.apply_error : 'Installation gestartet' + (r.applied ? ', Konfiguration ist angepasst' : ''));
+          jobsPoll();
+        });
+      });
+    }).catch(function (e) { toast(e.message); });
+  }
   function editFile(p) {
     api('GET', 'files/read?path=' + q(p)).then(function (r) {
       dialog('<h3>' + esc(p) + '</h3><p class="hint">Änderungen wirken meist erst nach einem Neustart des Servers.</p><textarea name="c" spellcheck="false"></textarea><p class="err"></p>' + btns('Speichern'), { wide: true });

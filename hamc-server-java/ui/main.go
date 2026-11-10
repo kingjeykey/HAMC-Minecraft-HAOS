@@ -208,6 +208,8 @@ func (a *App) handler() http.Handler {
 	route(post, "/api/files/delete", a.filesDelete)
 	route(post, "/api/files/write", a.filesWrite)
 	route(post, "/api/files/unzip", a.filesUnzip)
+	route(post, "/api/mrpack/inspect", a.mrInspect)
+	route(post, "/api/mrpack/install", a.mrInstall)
 	route(post, "/api/files/fetch", a.filesFetch)
 	return a.guard(mux)
 }

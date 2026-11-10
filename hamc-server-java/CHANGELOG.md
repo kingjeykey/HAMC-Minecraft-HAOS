@@ -1,5 +1,10 @@
 ## next
 
+## 1.6.0
+
+- New: Modrinth modpacks (`.mrpack`). Upload the file (or load it from a URL) in the Files tab and click "Modpack installieren". The add-on downloads all server mods, checks their checksums, applies the pack's config files and can set `TYPE` and `VERSION` for you. Client-only mods are skipped. Downloads are only allowed from the hosts the .mrpack specification permits (Modrinth CDN, GitHub, GitLab).
+- Added `NEOFORGE` to the selectable server types.
+
 ## 1.5.1
 
 - Fix: RCON connections were closed by the server at random ("RCON nicht erreichbar: EOF"), so TPS/MSPT, console input and whitelist changes did not work. The RCON client now sends its packets one at a time, as the Minecraft server expects. TPS detection is also retried sooner after a connection error.
