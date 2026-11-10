@@ -1,5 +1,9 @@
 ## next
 
+## 1.6.1
+
+- After uploading a `.mrpack` file the install dialog opens automatically.
+
 ## 1.6.0
 
 - New: Modrinth modpacks (`.mrpack`). Upload the file (or load it from a URL) in the Files tab and click "Modpack installieren". The add-on downloads all server mods, checks their checksums, applies the pack's config files and can set `TYPE` and `VERSION` for you. Client-only mods are skipped. Downloads are only allowed from the hosts the .mrpack specification permits (Modrinth CDN, GitHub, GitLab).

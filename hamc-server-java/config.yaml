@@ -1,6 +1,6 @@
 name: HAMC Server Java
 description: Host a Java Minecraft server on Home Assistant
-version: 1.6.0
+version: 1.6.1
 slug: hamc-java
 init: false
 ingress: true

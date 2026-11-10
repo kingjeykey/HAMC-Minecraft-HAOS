@@ -442,7 +442,12 @@
     var i = 0;
     $('upBar').hidden = false;
     (function next() {
-      if (i >= files.length) { $('upBar').hidden = true; toast(files.length + (files.length === 1 ? ' Datei hochgeladen' : ' Dateien hochgeladen')); filesLoad(fpath); return; }
+      if (i >= files.length) {
+        $('upBar').hidden = true; toast(files.length + (files.length === 1 ? ' Datei hochgeladen' : ' Dateien hochgeladen')); filesLoad(fpath);
+        var pack = files.filter(function (f) { return /\.mrpack$/i.test(f.name); })[0];
+        if (pack) installMrpack(join(fpath, pack.name));
+        return;
+      }
       var f = files[i++], fd = new FormData(); fd.append('file', f, f.name);
       var x = new XMLHttpRequest();
       x.open('POST', BASE + 'api/files/upload?path=' + q(fpath));
