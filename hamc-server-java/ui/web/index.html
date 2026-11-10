@@ -16,6 +16,7 @@
     <button role="tab" data-tab="overview" aria-selected="true">Übersicht</button>
     <button role="tab" data-tab="console" aria-selected="false">Konsole</button>
     <button role="tab" data-tab="whitelist" aria-selected="false">Whitelist</button>
+    <button role="tab" data-tab="mods" id="modTabBtn" aria-selected="false">Mods</button>
     <button role="tab" data-tab="files" aria-selected="false">Dateien</button>
   </nav>
 </header>
@@ -71,6 +72,25 @@
     <table class="tbl wl-tbl"><thead><tr><th>Spieler</th><th>UUID</th><th></th></tr></thead><tbody id="wlBody"></tbody></table>
     <p id="wlEmpty" class="muted" hidden>Die Whitelist ist leer. Füge oben Spieler hinzu.</p>
     <p id="wlSync" class="muted"></p>
+  </section>
+
+  <section id="tab-mods" class="tab" role="tabpanel" hidden>
+    <div id="modNote" class="note" hidden></div>
+    <div class="f-tools">
+      <div id="modFolders" class="chips" hidden></div>
+      <button class="btn primary" id="modSearchBtn" type="button">Auf Modrinth suchen</button>
+      <button class="btn" id="modUpload" type="button">Datei hochladen</button>
+      <button class="btn" id="modCheck" type="button">Updates prüfen</button>
+      <input type="file" id="modPick" accept=".jar" multiple hidden>
+    </div>
+    <div id="modUpdates" class="note" hidden></div>
+    <div id="modJobs" class="jobs"></div>
+    <table class="tbl files mods-tbl">
+      <thead><tr><th>Name</th><th>Version</th><th class="sz">Größe</th><th></th></tr></thead>
+      <tbody id="modBody"></tbody>
+    </table>
+    <p id="modEmpty" class="muted" hidden></p>
+    <p class="muted small-note">Änderungen an Mods werden erst nach einem Neustart des Servers wirksam. Reine Client-Mods gehören nicht auf den Server.</p>
   </section>
 
   <section id="tab-files" class="tab" role="tabpanel" hidden>

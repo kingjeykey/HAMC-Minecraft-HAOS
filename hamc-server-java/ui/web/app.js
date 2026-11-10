@@ -87,7 +87,7 @@
   }
 
   /* ---------- Tabs ---------- */
-  var tabs = ['overview', 'console', 'whitelist', 'files'], cur = null;
+  var tabs = ['overview', 'console', 'whitelist', 'mods', 'files'], cur = null;
   function showTab(name) {
     if (tabs.indexOf(name) < 0) name = 'overview';
     cur = name;
@@ -99,6 +99,7 @@
     if (name === 'console') consoleOpen(); else consoleClose();
     if (name === 'whitelist') wlLoad();
     if (name === 'files') filesLoad(fpath);
+    if (name === 'mods') modLoad();
     if (name === 'overview') render();
   }
   document.querySelector('.tabs').addEventListener('click', function (e) {
@@ -437,20 +438,22 @@
   });
 
   /* Hochladen */
-  function upload(files) {
+  function upload(files, dest, after) {
+    if (dest == null) dest = fpath;
+    after = after || function () { filesLoad(fpath); };
     files = Array.prototype.slice.call(files); if (!files.length) return;
     var i = 0;
     $('upBar').hidden = false;
     (function next() {
       if (i >= files.length) {
-        $('upBar').hidden = true; toast(files.length + (files.length === 1 ? ' Datei hochgeladen' : ' Dateien hochgeladen')); filesLoad(fpath);
+        $('upBar').hidden = true; toast(files.length + (files.length === 1 ? ' Datei hochgeladen' : ' Dateien hochgeladen')); after();
         var pack = files.filter(function (f) { return /\.mrpack$/i.test(f.name); })[0];
-        if (pack) installMrpack(join(fpath, pack.name));
+        if (pack && dest === fpath) installMrpack(join(fpath, pack.name));
         return;
       }
       var f = files[i++], fd = new FormData(); fd.append('file', f, f.name);
       var x = new XMLHttpRequest();
-      x.open('POST', BASE + 'api/files/upload?path=' + q(fpath));
+      x.open('POST', BASE + 'api/files/upload?path=' + q(dest));
       x.setRequestHeader('X-Requested-With', 'hamc');
       x.upload.onprogress = function (e) {
         if (e.lengthComputable) { $('upProg').value = e.loaded / e.total * 100; $('upTxt').textContent = f.name + ' (' + i + '/' + files.length + '): ' + fmtSize(e.loaded) + ' von ' + fmtSize(e.total); }
@@ -505,15 +508,152 @@
               j.status === 'done' ? '<span>fertig</span>' : '<span>Fehler: ' + esc(j.error) + '</span>') + '</div>';
         }
       });
-      $('jobs').innerHTML = h;
+      $('jobs').innerHTML = h; $('modJobs').innerHTML = h;
       if (refresh && cur === 'files') api('GET', 'files/list?path=' + q(fpath)).then(function (d) { fdata = d; filesRender(); }).catch(function () {});
+      if (refresh && cur === 'mods') modReload();
       clearTimeout(jobTimer);
-      if (running && cur === 'files') jobTimer = setTimeout(jobsPoll, 2000);
+      if (running && (cur === 'files' || cur === 'mods')) jobTimer = setTimeout(jobsPoll, 2000);
     }).catch(function () {});
   }
+
+
+  /* ---------- Mods und Plugins ---------- */
+  var modInfo = null, modDir = null, modUpd = {}, modRows = [];
+  function modLabel(info) {
+    var f = info.folders || [];
+    if (!info.supported) return 'Mods';
+    if (f.length > 1) return 'Mods & Plugins';
+    return f[0] === 'plugins' ? 'Plugins' : 'Mods';
+  }
+  function modInfoLoad() {
+    return api('GET', 'mods/info').then(function (i) {
+      modInfo = i; $('modTabBtn').textContent = modLabel(i);
+      if (!modDir || i.folders.indexOf(modDir) < 0) modDir = i.folders[0];
+      return i;
+    });
+  }
+  function modNoun() { return modDir === 'plugins' ? 'Plugin' : 'Mod'; }
+  function modLoad() {
+    modInfoLoad().then(function (i) {
+      var n = $('modNote');
+      if (!i.supported) {
+        n.hidden = false;
+        n.textContent = 'Dein Servertyp' + (i.type ? ' (' + i.type + ')' : '') + ' unterstützt keine Mods oder Plugins. Stelle in der Konfiguration unter TYPE zum Beispiel FABRIC, NEOFORGE, FORGE, QUILT oder PAPER ein und starte das Add-on neu.';
+      } else n.hidden = true;
+      ['modSearchBtn', 'modCheck'].forEach(function (id) { $(id).disabled = !i.supported; });
+      var fo = $('modFolders');
+      if (i.folders.length > 1) {
+        fo.hidden = false;
+        fo.innerHTML = i.folders.map(function (f) { return '<button class="chip" data-dir="' + f + '" aria-pressed="' + (f === modDir) + '">' + (f === 'mods' ? 'Mods' : 'Plugins') + '</button>'; }).join('');
+      } else fo.hidden = true;
+      jobsPoll();
+      return modReload();
+    }).catch(function (e) { toast(e.message); });
+  }
+  $('modFolders').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-dir]'); if (!b) return;
+    modDir = b.dataset.dir; modUpd = {}; $('modUpdates').hidden = true; modLoad();
+  });
+  function modReload() {
+    return api('GET', 'mods/list?dir=' + q(modDir)).then(function (r) { modRows = r.mods || []; modRender(); });
+  }
+  function modRender() {
+    var rows = modRows;
+    $('modEmpty').hidden = rows.length > 0;
+    $('modEmpty').textContent = 'Im Ordner ' + modDir + ' liegt noch nichts. Suche auf Modrinth oder lade eine .jar-Datei hoch.';
+    $('modBody').innerHTML = rows.map(function (m) {
+      var u = modUpd[m.file], title = m.name || m.file.replace(/\.jar(\.disabled)?$/, '');
+      var ver = m.version ? esc(m.version) : '–';
+      var name = esc(title) + (m.enabled ? '' : '<span class="badge off">Aus</span>') + (u ? '<span class="badge">Update ' + esc(u.latest) + '</span>' : '') + '<span class="sub">' + esc(m.file) + (m.kind ? ' · ' + esc(m.kind) : '') + '</span>';
+      var a = '';
+      if (u) a += '<button class="lnk" data-m="upd" data-f="' + esc(m.file) + '">Aktualisieren</button>';
+      a += '<button class="lnk" data-m="tog" data-f="' + esc(m.file) + '">' + (m.enabled ? 'Ausschalten' : 'Einschalten') + '</button>';
+      a += '<button class="lnk danger" data-m="del" data-f="' + esc(m.file) + '" data-n="' + esc(title) + '">Löschen</button>';
+      return '<tr class="' + (m.enabled ? '' : 'off') + '"><td>' + name + '</td><td class="ver">' + ver + '</td><td class="sz">' + fmtSize(m.size) + '</td><td class="ac">' + a + '</td></tr>';
+    }).join('');
+  }
+  $('modBody').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-m]'); if (!b) return;
+    var f = b.dataset.f, act = b.dataset.m;
+    if (act === 'tog') {
+      api('POST', 'mods/toggle', { dir: modDir, file: f }).then(function (r) { toast(r.enabled ? 'Eingeschaltet' : 'Ausgeschaltet'); delete modUpd[f]; modReload(); }).catch(function (er) { toast(er.message); });
+    } else if (act === 'del') {
+      confirmDlg(b.dataset.n + ' löschen?', 'Die Datei ' + f + ' wird vom Server entfernt. Wenn du den ' + modNoun() + ' nur testen willst, nutze Ausschalten.', 'Löschen').then(function (ok) {
+        if (ok) api('POST', 'mods/delete', { dir: modDir, file: f }).then(function () { toast('Gelöscht'); modReload(); }).catch(function (er) { toast(er.message); });
+      });
+    } else if (act === 'upd') modApply([f]);
+  });
+  function modApply(files) {
+    var items = files.map(function (f) { return { file: f, version_id: modUpd[f].version_id }; });
+    api('POST', 'mods/update', { dir: modDir, items: items }).then(function () {
+      toast('Update gestartet'); files.forEach(function (f) { delete modUpd[f]; }); modUpdatesNote(null); jobsPoll();
+    }).catch(function (e) { toast(e.message); });
+  }
+  function modUpdatesNote(r) {
+    var n = $('modUpdates'), keys = Object.keys(modUpd);
+    if (!r && !keys.length) { n.hidden = true; return; }
+    n.hidden = false;
+    var t = keys.length ? keys.length + (keys.length === 1 ? ' Update verfügbar. ' : ' Updates verfügbar. ') : 'Alles aktuell. ';
+    if (r && r.unknown) t += r.unknown + ' Dateien kennt Modrinth nicht, sie werden nicht geprüft. ';
+    n.innerHTML = esc(t) + (keys.length > 1 ? '<button class="btn small" id="modAll" type="button">Alle aktualisieren</button>' : '');
+    var all = $('modAll'); if (all) all.addEventListener('click', function () { modApply(Object.keys(modUpd)); });
+  }
+  $('modCheck').addEventListener('click', function () {
+    var b = this; b.disabled = true; b.textContent = 'Prüfe';
+    api('POST', 'mods/updates', { dir: modDir }).then(function (r) {
+      modUpd = {}; (r.updates || []).forEach(function (u) { modUpd[u.file] = u; });
+      modUpdatesNote(r); modRender();
+    }).catch(function (e) { toast(e.message); }).then(function () { b.disabled = !(modInfo && modInfo.supported); b.textContent = 'Updates prüfen'; });
+  });
+  $('modUpload').addEventListener('click', function () { $('modPick').click(); });
+  $('modPick').addEventListener('change', function () {
+    var all = Array.prototype.slice.call(this.files), jars = all.filter(function (f) { return /\.jar$/i.test(f.name); });
+    this.value = '';
+    if (jars.length < all.length) toast('Nur .jar-Dateien werden angenommen');
+    if (jars.length) {
+      api('GET', 'files/list?path=' + q(modDir)).catch(function () { return api('POST', 'files/mkdir', { path: '', name: modDir }); }).then(function () { upload(jars, modDir, modReload); });
+    }
+  });
+
+  /* Modrinth-Suche */
+  $('modSearchBtn').addEventListener('click', function () {
+    var info = modInfo; if (!info || !info.supported) return;
+    var timer = null, results = [];
+    var html = '<h3>' + (modDir === 'plugins' ? 'Plugins' : 'Mods') + ' auf Modrinth suchen</h3>' +
+      '<div class="mr-bar"><input type="text" id="mrQ" placeholder="Name oder Stichwort, leer zeigt die beliebtesten" aria-label="Suche" autocomplete="off">' +
+      '<input type="text" id="mrV" class="ver" value="' + esc(info.mc || '') + '" placeholder="MC-Version" aria-label="Minecraft-Version"></div>' +
+      '<p class="hint" id="mrHint" style="margin:8px 0 0"></p><div class="mr-list" id="mrList"></div>' +
+      '<div class="btns"><button class="btn" value="cancel" type="submit" formnovalidate>Schließen</button></div>';
+    dialog(html, { wide: true });
+    var Q = $('mrQ'), V = $('mrV'), L = $('mrList'), H = $('mrHint');
+    function run() {
+      H.textContent = 'Suche';
+      api('GET', 'mods/search?q=' + q(Q.value) + '&mc=' + q(V.value.trim())).then(function (r) {
+        results = r.hits;
+        H.textContent = r.total + ' Treffer für ' + (r.loaders || []).join(', ') + (r.mc ? ' auf Minecraft ' + r.mc : '') + (r.total > results.length ? ', die ersten ' + results.length + ' werden angezeigt' : '');
+        L.innerHTML = results.map(function (h, i) {
+          var client = h.server_side === 'unsupported';
+          return '<div class="mr-hit">' + (h.icon ? '<img src="' + esc(h.icon) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : '<span class="noicon"></span>') +
+            '<div class="body"><div class="t">' + esc(h.title) + ' <span class="muted" style="font-weight:400">von ' + esc(h.author || '?') + ' · ' + fmt(h.downloads / 1000, 0) + ' Tsd. Downloads</span></div><div class="d">' + esc(h.description) + '</div></div>' +
+            (client ? '<span class="muted">Nur Client</span>' : '<button type="button" class="btn small primary" data-i="' + i + '">Installieren</button>') + '</div>';
+        }).join('') || '<p class="muted">Nichts gefunden. Prüfe die Minecraft-Version oder suche anders.</p>';
+      }).catch(function (e) { H.textContent = e.message; L.innerHTML = ''; });
+    }
+    Q.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(run, 350); });
+    V.addEventListener('change', run);
+    [Q, V].forEach(function (el) { el.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); clearTimeout(timer); run(); } }); });
+    L.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-i]'); if (!b) return;
+      var h = results[+b.dataset.i];
+      b.disabled = true; b.textContent = 'Gestartet';
+      api('POST', 'mods/install', { dir: modDir, project: h.id, title: h.title, mc: V.value.trim() }).then(function () { toast(h.title + ': Installation gestartet'); jobsPoll(); }).catch(function (er) { toast(er.message); b.disabled = false; b.textContent = 'Installieren'; });
+    });
+    run(); Q.focus();
+  });
 
   /* ---------- Start ---------- */
   var h = (location.hash || '').replace('#', '');
   showTab(tabs.indexOf(h) >= 0 ? h : 'overview');
   poll();
+  modInfoLoad().catch(function () {});
 })();

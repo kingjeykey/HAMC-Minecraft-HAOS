@@ -158,3 +158,18 @@ dialog .err { color: var(--bad); margin: 8px 0 0; }
   .big { font-size: 2.1rem; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+
+/* Mods */
+.mods-tbl .sub { display: block; font-size: 0.8rem; color: var(--muted); overflow-wrap: anywhere; }
+.mods-tbl tr.off td:not(.ac) { opacity: 0.55; }
+.mods-tbl td.ver { white-space: nowrap; }
+.badge { display: inline-block; font-size: 0.78rem; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 0 6px; margin-left: 6px; }
+.badge.off { border-color: var(--muted); color: var(--muted); }
+.mr-hit { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.mr-hit img, .mr-hit .noicon { width: 40px; height: 40px; border-radius: 6px; flex: none; background: var(--slot-off); object-fit: cover; }
+.mr-hit .body { flex: 1; min-width: 0; }
+.mr-hit .t { font-weight: 650; }
+.mr-hit .d { font-size: 0.88rem; color: var(--muted); }
+.mr-list { max-height: 50vh; overflow: auto; margin-top: 8px; }
+.mr-bar { display: flex; gap: 8px; }
+.mr-bar .ver { max-width: 140px; }

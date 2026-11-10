@@ -1,5 +1,10 @@
 ## next
 
+## 1.7.0
+
+- New: "Mods" tab (called "Plugins" or "Mods & Plugins" depending on the server type). Lists everything in `mods`/`plugins` with name and version read from the jar, switch mods on/off (renames to `.jar.disabled`), delete, upload jars, search and install from Modrinth including required dependencies, and check for / apply updates. Works for Fabric, Quilt, Forge, NeoForge and Paper/Spigot/Bukkit; Vanilla shows a hint instead.
+- Only the official Modrinth API and CDN are used. All downloads are verified by checksum. Client-only mods are marked and cannot be installed from the search.
+
 ## 1.6.1
 
 - After uploading a `.mrpack` file the install dialog opens automatically.

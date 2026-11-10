@@ -85,6 +85,9 @@ func readOptions(paths []string) map[string]any {
 }
 
 func newApp(cfg Config) *App {
+	if v := os.Getenv("HAMC_MODRINTH_API"); v != "" {
+		modrinthAPI = strings.TrimRight(v, "/")
+	}
 	a := &App{cfg: cfg, jobs: &Jobs{}}
 	a.opts = readOptions(cfg.OptionsPaths)
 	if r, err := filepath.EvalSymlinks(cfg.DataDir); err == nil {
@@ -208,6 +211,14 @@ func (a *App) handler() http.Handler {
 	route(post, "/api/files/delete", a.filesDelete)
 	route(post, "/api/files/write", a.filesWrite)
 	route(post, "/api/files/unzip", a.filesUnzip)
+	route(get, "/api/mods/info", a.modInfoH)
+	route(get, "/api/mods/list", a.modList)
+	route(get, "/api/mods/search", a.modSearch)
+	route(post, "/api/mods/toggle", a.modToggle)
+	route(post, "/api/mods/delete", a.modDelete)
+	route(post, "/api/mods/install", a.modInstall)
+	route(post, "/api/mods/updates", a.modUpdates)
+	route(post, "/api/mods/update", a.modUpdate)
 	route(post, "/api/mrpack/inspect", a.mrInspect)
 	route(post, "/api/mrpack/install", a.mrInstall)
 	route(post, "/api/files/fetch", a.filesFetch)
